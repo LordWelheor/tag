@@ -1,0 +1,30 @@
+{
+  "name": "tag",
+  "version": "0.0.1",
+  "description": "Tag on canvas.",
+  "scripts": {
+    "start": "set NODE_ENV=development&& gulp",
+    "dev": "gulp",
+    "prod": "gulp prod",
+    "lint": "eslint src && stylelint src/less/*.less",
+    "precommit": "npm run lint"
+  },
+  "author": "Stanislav Reva",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "browser-sync": "^2.18.11",
+    "eslint": "^3.19.0",
+    "gulp-autoprefixer": "^4.0.0",
+    "gulp-babel": "^7.0.1",
+    "husky": "^0.14.3",
+    "stylelint": "^7.13.0"
+  },
+  "dependencies": {
+    "gulp": "^3.9.1",
+    "gulp-less": "^3.3.0",
+    "gulp-sourcemaps": "^2.6.1",
+    "normalize.css": "^7.0.0"
+  }
+}
