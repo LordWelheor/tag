@@ -1,10 +1,10 @@
-
 class Tag {
     constructor() {
         this.size = 50;
         this.sizeText = 40;
         this.dist = 3;
         this.count = 16;
+        this.n = Math.pow(this.count, 0.5);
         this.colorBgd = '#ffdead';
         this.colorRect = '#666';
         this.colorText = '#fffaf0'; 
@@ -24,32 +24,46 @@ class Tag {
         this.cnv = canvas;
         this.ctx = this.cnv.getContext("2d");
 
-        const n = Math.pow(this.count, 0.5);
-        this.cnv.width = this.size * n + this.dist * (n + 1);
+        this.cnv.width = this.size * this.n + this.dist * (this.n + 1);
         this.cnv.height = this.cnv.width;
-        this.ctx.fillStyle = this.colorBgd;
-        this.ctx.fillRect(0, 0, this.cnv.width, this.cnv.height);
-
-        this.newGame();
     }
 
     newGame() {
-        const n = Math.pow(this.count, 0.5);
-        let i, j;
+        const temp = new Array(this.count);
+        let i, j, val;
+               
+        this.counter = 0; 
+        this.field = new Array(this.n);
 
-        this.empty.setPos(n-1, n-1);
-        this.field = new Array(n);
+        for (i=0; i < this.count; i++) {
+            temp[i] = false;
+        }
         
-        for (i=0; i < n; i++) {
+        for (i=0; i < this.n; i++) {
             this.field[i] = [];
-            for (j=0; j < n; j++) {
-                this.field[i][j] = i * n + j + 1;
+            for (j=0; j < this.n; j++) {
+                do {
+                    val = Math.floor(Math.random() * this.count);
+                } while (temp[val]);
+                
+                temp[val] = true;
+                this.field[i][j] = val;
+
+                if (!val) {
+                    this.field[i][j] = '';
+                    this.empty.setPos(j, i);                    
+                }
             }
         }
-        this.field[this.empty.x][this.empty.y] = '';
 
-        for (i=0; i < n; i++) {
-            for (j=0; j < n; j++) {
+        this.canBeSolved();
+
+
+        this.ctx.fillStyle = this.colorBgd;
+        this.ctx.fillRect(0, 0, this.cnv.width, this.cnv.height);
+
+        for (i=0; i < this.n; i++) {
+            for (j=0; j < this.n; j++) {
                 this.drawCell(i, j, this.field[i][j]);
             }
         }
@@ -71,8 +85,8 @@ class Tag {
         } else {
             this.ctx.fillStyle = this.colorBgd;
         }
-
-        this.ctx.shadowColor = this.colorBgd;        
+      
+        this.ctx.shadowColor = '#0000';
         this.ctx.fillRect(x , y, this.size, this.size);
 
         this.ctx.fillStyle = this.colorText;
@@ -97,6 +111,7 @@ class Tag {
 
         if (diffX && i === this.empty.y || diffY && j === this.empty.x) {
             this.moveFrom (i, j);
+            this.counter++;
         }
     }
 
@@ -107,20 +122,99 @@ class Tag {
         this.field[i][j] = '';
         this.empty.setPos(j, i);
     }
-}
 
-const tag = new Tag;
+    canBeSolved() {
+        let i, j, sum = 0,
+            listField = [];
+
+        for (i=0; i < this.n; i++) {
+            listField = listField.concat(this.field[i]);
+        }
+
+        for (i=0; i < this.count; i++) {
+            if (listField[i] == 0) {
+                sum += i / this.n;
+                continue;
+            }
+
+            for (j=i+1; j < this.count; j++) {
+                if (listField[j] < listField[i])
+                    sum ++;
+            }
+        }
+        return sum % 2 == 0;
+    }
+
+    isWin() {
+        let i, listField = [], res = true;
+        
+        for (i=0; i < this.n; i++) {
+            listField = listField.concat(this.field[i]);
+        }
+
+        for (i=0; i < this.count - 1; i++) {
+            if (i + 1 != listField[i]) {
+                res = false;
+                break;
+            }
+        }
+
+        return res;
+    }
+}
 
 document.addEventListener("DOMContentLoaded", function() {
-    const canvas = document.getElementById('canvas');
-    tag.setCanvas(canvas);
 
-    canvas.addEventListener('click', onClickCanvas);
+    const main = {
+        init() {
+            this.cache();
+            this.event();
+
+            this.tag.setCanvas(this.canvas);
+            this.restart.click();
+        },
+
+        cache() {
+            this.canvas  = document.getElementById('canvas');
+            this.counter = document.getElementById('counter');
+            this.restart = document.getElementById('restart');
+            this.message = document.getElementById('message');
+            this.tag     = new Tag;
+        },
+
+        event() {
+            this.canvas.addEventListener('click', this.onClickCanvas.bind(this));
+            this.restart.addEventListener('click', this.onClickRestart.bind(this));
+        },
+
+        onClickCanvas (ev) {
+            const x = ev.offsetX,
+                  y = ev.offsetY;
+        
+            this.tag.onClick(x, y);
+            this.counter.innerHTML = this.tag.counter;
+        },
+        
+        onClickRestart (ev) {
+            this.tag.newGame();
+            this.counter.innerHTML = 0;
+            let message = '';
+
+            if (this.tag.isWin()) {
+                message = this.message.getAttribute('data-win');
+            } else if(!this.tag.canBeSolved()) {
+                message = this.message.getAttribute('data-error');                
+            }
+
+            this.message.innerHTML = message;
+
+            if (message) {
+                this.message.classList.remove('_hide');
+            } else {
+                this.message.classList.add('_hide');                
+            }
+        }
+    }
+
+    main.init();
 });
-
-function onClickCanvas (ev) {
-    const x = ev.offsetX,
-          y = ev.offsetY;
-
-    tag.onClick(x, y);
-}

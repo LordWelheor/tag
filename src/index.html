@@ -11,7 +11,20 @@
 </head>
 <body id="body">
 
-    <canvas id="canvas" class="canvas"></canvas>
+    <div class="tag">
+        <canvas id="canvas" class="tag__canvas"></canvas>
+        <span id="message" 
+            class="tag__message _hide" 
+            data-win="Вы выиграли!!!"
+            data-error="Не решаемая комбинация">
+        </span>
+        <div class="tag__info">
+            <span class="tag__text-counter">Количество шагов: 
+                <span id="counter" class="tag__counter">0</span>
+            </span>
+            <button id="restart" class="tag__restart">Заново</button>
+        </div>
+    </div>
 
 </body>
 </html>
