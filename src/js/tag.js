@@ -3,8 +3,8 @@ class Tag {
         this.size = 50;
         this.sizeText = 40;
         this.dist = 3;
-        this.count = 16;
-        this.n = Math.pow(this.count, 0.5);
+        this.n = 4;
+        this.count = this.n * this.n;
         this.colorBgd = '#ffdead';
         this.colorRect = '#666';
         this.colorText = '#fffaf0'; 
@@ -20,7 +20,7 @@ class Tag {
         }
     }
 
-    setCanvas (canvas) {
+    setCanvas(canvas) {
         this.cnv = canvas;
         this.ctx = this.cnv.getContext("2d");
 
@@ -56,9 +56,6 @@ class Tag {
             }
         }
 
-        this.canBeSolved();
-
-
         this.ctx.fillStyle = this.colorBgd;
         this.ctx.fillRect(0, 0, this.cnv.width, this.cnv.height);
 
@@ -69,7 +66,7 @@ class Tag {
         }
     }
 
-    drawCell (i, j, val='') {
+    drawCell(i, j, val='') {
         let x = j * (this.dist + this.size) + this.dist,
             y = i * (this.dist + this.size) + this.dist;
 
@@ -94,7 +91,7 @@ class Tag {
         this.ctx.fillText(val, x + this.size / 2, y + this.size /2, this.sizeText);
     }
 
-    onClick (x, y) {
+    onClick(x, y) {
         const i = Math.floor(y / (this.dist + this.size)),
               j = Math.floor(x / (this.dist + this.size)),
               minX = j * (this.dist + this.size) + this.dist,
@@ -115,34 +112,12 @@ class Tag {
         }
     }
 
-    moveFrom (i, j) {
+    moveFrom(i, j) {
         this.drawCell(i, j);
         this.drawCell(this.empty.y, this.empty.x, this.field[i][j]);
         this.field[this.empty.y][this.empty.x] = this.field[i][j];
         this.field[i][j] = '';
         this.empty.setPos(j, i);
-    }
-
-    canBeSolved() {
-        let i, j, sum = 0,
-            listField = [];
-
-        for (i=0; i < this.n; i++) {
-            listField = listField.concat(this.field[i]);
-        }
-
-        for (i=0; i < this.count; i++) {
-            if (listField[i] == 0) {
-                sum += i / this.n;
-                continue;
-            }
-
-            for (j=i+1; j < this.count; j++) {
-                if (listField[j] < listField[i])
-                    sum ++;
-            }
-        }
-        return sum % 2 == 0;
     }
 
     isWin() {
@@ -168,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const main = {
         init() {
             this.cache();
-            this.event();
+            this.events();
 
             this.tag.setCanvas(this.canvas);
             this.restart.click();
@@ -182,37 +157,27 @@ document.addEventListener("DOMContentLoaded", function() {
             this.tag     = new Tag;
         },
 
-        event() {
+        events() {
             this.canvas.addEventListener('click', this.onClickCanvas.bind(this));
             this.restart.addEventListener('click', this.onClickRestart.bind(this));
         },
 
-        onClickCanvas (ev) {
+        onClickCanvas(ev) {
             const x = ev.offsetX,
                   y = ev.offsetY;
         
             this.tag.onClick(x, y);
             this.counter.innerHTML = this.tag.counter;
-        },
-        
-        onClickRestart (ev) {
-            this.tag.newGame();
-            this.counter.innerHTML = 0;
-            let message = '';
 
             if (this.tag.isWin()) {
-                message = this.message.getAttribute('data-win');
-            } else if(!this.tag.canBeSolved()) {
-                message = this.message.getAttribute('data-error');                
-            }
-
-            this.message.innerHTML = message;
-
-            if (message) {
                 this.message.classList.remove('_hide');
-            } else {
-                this.message.classList.add('_hide');                
             }
+        },
+        
+        onClickRestart(ev) {
+            this.tag.newGame();
+            this.counter.innerHTML = 0;
+            this.message.classList.add('_hide');
         }
     }
 
